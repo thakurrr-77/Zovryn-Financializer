@@ -101,7 +101,6 @@ const Login: React.FC = () => {
                 </form>
 
                 <div className="mt-8 flex flex-col items-center gap-3 text-sm">
-                    <a href="#" className="underline text-slate-500 hover:text-indigo-400 transition-colors">Forgot password?</a>
                     <p className="text-slate-400">
                         Don't have an account? <Link to="/register" className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium">Join us</Link>
                     </p>
