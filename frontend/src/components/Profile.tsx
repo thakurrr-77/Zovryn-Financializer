@@ -14,6 +14,7 @@ import {
     Save
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
+import api from '../services/api';
 
 const Profile: React.FC = () => {
     const { isAdmin, isAnalyst, user: currentUser } = useUser();
@@ -51,16 +52,9 @@ const Profile: React.FC = () => {
                 return;
             }
 
-            const response = await fetch('http://localhost:8000/api/users/me', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
+            const response = await api.put('/users/me', payload);
+            
+            if (response.status === 200) {
                 setMessage({ text: 'Profile updated successfully!', type: 'success' });
                 setPassword(''); // Clear password field
             } else {
@@ -107,12 +101,12 @@ const Profile: React.FC = () => {
                     </Link>
                     {isAnalyst && (
                         <Link to="/records" className="flex items-center gap-3 px-3 lg:px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all group">
-                            <TrendingUp size={20} className="group-hover:translate-y--0.5 transition-transform" /> <span className="hidden lg:block">Transaction Records</span>
+                            <TrendingUp size={20} className="group-hover:translate-x-0.5 transition-transform" /> <span className="hidden lg:block">Insights</span>
                         </Link>
                     )}
                     {isAdmin && (
                         <Link to="/admin/users" className="flex items-center gap-3 px-3 lg:px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all group">
-                            <Users size={20} className="group-hover:scale-110 transition-transform" /> <span className="hidden lg:block">Assign Roles</span>
+                            <Users size={20} className="group-hover:scale-110 transition-transform" /> <span className="hidden lg:block">Personnel Management</span>
                         </Link>
                     )}
                     <Link to="/profile" className="flex items-center gap-3 px-3 lg:px-4 py-3 bg-indigo-600/10 text-indigo-400 rounded-xl font-medium transition-all group">
