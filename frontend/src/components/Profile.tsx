@@ -56,9 +56,9 @@ const Profile: React.FC = () => {
             
             if (response.status === 200) {
                 setMessage({ text: 'Profile updated successfully!', type: 'success' });
-                setPassword(''); // Clear password field
+                setPassword('');
             } else {
-                const data = await response.json();
+                const data = response.data;
                 setMessage({ text: data.detail || 'Failed to update profile', type: 'error' });
             }
         } catch (error) {
