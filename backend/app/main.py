@@ -34,21 +34,32 @@ async def lifespan(app: FastAPI):
                     db.add(models.Role(name=name, description=f"{name} Role"))
             db.commit()
 
-            # 2. Seed Default Admin (only if no users exist)
-            from app.core.security import get_password_hash
+            # 2. Seed Default Application Data (only if no users exist)
             if db.query(models.User).count() == 0:
-                admin_role = db.query(models.Role).filter(models.Role.name == "Admin").first()
-                if admin_role:
-                    new_admin = models.User(
-                        username="admin",
-                        email="admin@financializer.com",
-                        hashed_password=get_password_hash("admin123"),
-                        is_active=True
-                    )
-                    new_admin.roles.append(admin_role)
-                    db.add(new_admin)
-                    db.commit()
-                    logger.info("First run detected: Created default admin account (admin/admin123)")
+                try:
+                    from scripts.seed_dummy_data import seed_data
+                    seed_data()
+                    logger.info("First run detected: Database successfully seeded with demo users and records!")
+                    
+                    # Also ensure the basic 'admin/admin123' exists if seed_data didn't create a generic 'admin'
+                    if not db.query(models.User).filter(models.User.username == "admin").first():
+                        from app.core.security import get_password_hash
+                        admin_role = db.query(models.Role).filter(models.Role.name == "Admin").first()
+                        if admin_role:
+                            new_admin = models.User(
+                                username="admin",
+                                email="admin@financializer.com",
+                                hashed_password=get_password_hash("admin123"),
+                                is_active=True
+                            )
+                            new_admin.roles.append(admin_role)
+                            db.add(new_admin)
+                            db.commit()
+                            logger.info("Created fallback default admin account (admin/admin123)")
+                except ImportError:
+                    logger.warning("Seed script not found. Skipping dummy data generation.")
+                except Exception as seed_err:
+                    logger.error(f"Seeding failed: {seed_err}")
         finally:
             db.close()
     except Exception as e:
