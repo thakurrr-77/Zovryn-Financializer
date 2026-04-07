@@ -34,14 +34,17 @@ async def lifespan(app: FastAPI):
                     db.add(models.Role(name=name, description=f"{name} Role"))
             db.commit()
 
-            # 2. Seed Default Application Data (only if no users exist)
-            if db.query(models.User).count() == 0:
+            # 2. Seed Default Application Data (Aggressive Check)
+            user_count = db.query(models.User).count()
+            record_count = db.query(models.FinancialRecord).count()
+            
+            if user_count == 0 or record_count == 0:
                 try:
                     from scripts.seed_dummy_data import seed_data
                     seed_data()
-                    logger.info("First run detected: Database successfully seeded with demo users and records!")
+                    logger.info(f"Seeding completed (Users: {user_count}, Records: {record_count})")
                     
-                    # Also ensure the basic 'admin/admin123' exists if seed_data didn't create a generic 'admin'
+                    # Ensure fallback admin/admin123 exists
                     if not db.query(models.User).filter(models.User.username == "admin").first():
                         from app.core.security import get_password_hash
                         admin_role = db.query(models.Role).filter(models.Role.name == "Admin").first()
@@ -55,9 +58,7 @@ async def lifespan(app: FastAPI):
                             new_admin.roles.append(admin_role)
                             db.add(new_admin)
                             db.commit()
-                            logger.info("Created fallback default admin account (admin/admin123)")
-                except ImportError:
-                    logger.warning("Seed script not found. Skipping dummy data generation.")
+                            logger.info("Created fallback admin account (admin/admin123)")
                 except Exception as seed_err:
                     logger.error(f"Seeding failed: {seed_err}")
         finally:
